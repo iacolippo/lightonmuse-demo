@@ -2,7 +2,7 @@ import streamlit as st
 import lightonmuse
 import os
 
-
+st.set_page_config(page_title="Lighton Muse interactive demo")
 
 
 @st.cache
@@ -10,6 +10,20 @@ def get_muse_client():
 
     creator = lightonmuse.Create("orion-fr")
     return creator
+
+
+def app_title():
+
+    col1, mid, col2 = st.columns([4,1,30])
+    with col1:
+        st.image(
+            "https://camo.githubusercontent.com/39e9d21c0216ddc6856ff4769bd0e53e64d672a90f6c36654ef447dee274d696/68747470733a2f2f636c6f75642e6c696768746f6e2e61692f77702d636f6e74656e742f75706c6f6164732f323032302f30312f4c696768744f6e436c6f75642e706e67",
+            width=90
+            )
+    with col2:
+        st.title("\t\t\tLighton muse")
+
+
 
 
 def create_word_biases(params, forbidden_words, encourage_words):
@@ -91,6 +105,8 @@ def generate_prompt(prompt, n_token, mode, temperateure, p, k, best_of, presence
     
     return prompt + " " + prompt_completion
 
+app_title()
+
 
 MAX_TOKEN = 2048
 mode = st.sidebar.selectbox('Mode', ('Greedy', 'TopK', 'Nucleus')).lower()
@@ -109,18 +125,6 @@ if muse_api_key_data:
     os.environ['MUSE_API_KEY'] = muse_api_key_data
 
 
-
-
-col1, mid, col2 = st.columns([4,1,30])
-with col1:
-    st.image(
-        "https://camo.githubusercontent.com/39e9d21c0216ddc6856ff4769bd0e53e64d672a90f6c36654ef447dee274d696/68747470733a2f2f636c6f75642e6c696768746f6e2e61692f77702d636f6e74656e742f75706c6f6164732f323032302f30312f4c696768744f6e436c6f75642e706e67",
-        width=90
-        )
-with col2:
-    st.title("\t\t\tLighton muse")
-
-
 encourage_words = st.text_input("Encourage words", value="Bordeaux;Marseille")
 forbidden_words = st.text_input("Forbidden words", value="Paris;Lyon")
 stop_words      = st.text_input('Stop words')
@@ -135,7 +139,8 @@ generate = generate_button.button("Generate")
 if 'prompt_data' not in st.session_state:
     st.session_state['prompt_data'] = ""
 
-user_input = prompt_input.text_area("Prompt", value=st.session_state['prompt_data'], key="prompt_input")
+height = 500
+user_input = prompt_input.text_area("Prompt", value=st.session_state['prompt_data'], key="prompt_input", height=height)
 if generate:
     
     generated_prompt = generate_prompt(
@@ -153,4 +158,4 @@ if generate:
 
     if generated_prompt != user_input:
         st.session_state['prompt_data'] = generated_prompt
-        prompt_input.text_area("Prompt", value=generated_prompt)
+        prompt_input.text_area("Prompt", value=generated_prompt, height=height)
