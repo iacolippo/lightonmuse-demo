@@ -5,7 +5,6 @@
 1. Install streamlit 
 
 ```bash
-
 pip install streamlit 
 
 ```

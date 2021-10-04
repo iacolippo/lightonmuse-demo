@@ -7,12 +7,40 @@ def get_muse_client():
     creator = lightonmuse.Create("orion-fr")
     return creator
 
+
+def create_word_biases(params, forbidden_words, encourage_words):
+    
+    biases = {}
+    for bias in forbidden_words.split(";"):
+        # effectivaly forbid word
+        biases[bias] = -100
+
+    for bias in encourage_words.split(";"):
+        # fine-tuned value that works nicely in 
+        # combination with penalties
+        biases[bias] = 4.5
+
+    if len(biases) > 0:
+    
+        params["word_biases"] = biases
+    
+    
+def format_stop_word(params, stop_words):
+    
+    # build the stop_words list
+    if stop_words:
+        stop_words_list = list()
+        for word in stop_words.value.split(";"):
+            stop_words_list.append(word)
+    
+    
+        params["stop_words"] = stop_words_list
+    
 def generate_prompt(prompt, n_token, mode, temperateure, p, k, best_of, presence_penalty, frequence_penalty, encourage_words, forbidden_words):
 
     if prompt == "":
         return prompt
 
-    
 
     n_completions = best_of if best_of > 1 else 1
 
@@ -30,10 +58,8 @@ def generate_prompt(prompt, n_token, mode, temperateure, p, k, best_of, presence
     }
     
     # add the biases and stop words if they have been provided
-    if encourage_words is not None:
-        params["word_biases"] = encourage_words
-    if forbidden_words is not None:
-        params["stop_words"] = forbidden_words
+    create_word_biases(params, forbidden_words, encourage_words) 
+    format_stop_word(params, stop_words)
     
     # call Create
 
@@ -43,15 +69,16 @@ def generate_prompt(prompt, n_token, mode, temperateure, p, k, best_of, presence
     try:
         info.write("Please wait...")
         outputs, cost, rid = muse_client(text=prompt, **params)
-        prompt_completion = outputs[0]["completions"]
+        prompt_completion = outputs[0]["completions"][0]['output_text']
         info.write("Done.")
     
     except RuntimeError as e: 
         prompt_completion = prompt
         info.write(str(e))
+        return prompt
         
     
-    return prompt_completion
+    return prompt + " " + prompt_completion
 
 
 MAX_TOKEN = 2048
@@ -86,10 +113,10 @@ generate_button = st.empty()
 generate = generate_button.button("Generate")
 
 # Initialization
-if 'prompt' not in st.session_state:
-    st.session_state['prompt'] = ""
+if 'prompt_data' not in st.session_state:
+    st.session_state['prompt_data'] = ""
 
-user_input = prompt_input.text_area("Prompt", value=st.session_state['prompt'])
+user_input = prompt_input.text_area("Prompt", value=st.session_state['prompt_data'], key="prompt_input")
 if generate:
     
     generated_prompt = generate_prompt(
@@ -105,5 +132,5 @@ if generate:
         forbidden_words
     )
 
-    st.session_state['prompt'] = generated_prompt
-    user_input = prompt_input.text_area("Prompt", value=st.session_state['prompt'])
+    st.session_state['prompt_data'] = generated_prompt
+    prompt_input.text_area("Prompt", value=generated_prompt)
