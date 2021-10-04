@@ -11,14 +11,17 @@ def get_muse_client():
 def create_word_biases(params, forbidden_words, encourage_words):
     
     biases = {}
-    for bias in forbidden_words.split(";"):
-        # effectivaly forbid word
-        biases[bias] = -100
 
-    for bias in encourage_words.split(";"):
-        # fine-tuned value that works nicely in 
-        # combination with penalties
-        biases[bias] = 4.5
+    if forbidden_words:
+        for bias in forbidden_words.split(";"):
+            # effectivaly forbid word
+            biases[bias] = -100
+
+    if encourage_words:
+        for bias in encourage_words.split(";"):
+            # fine-tuned value that works nicely in 
+            # combination with penalties
+            biases[bias] = 4.5
 
     if len(biases) > 0:
     
@@ -30,7 +33,7 @@ def format_stop_word(params, stop_words):
     # build the stop_words list
     if stop_words:
         stop_words_list = list()
-        for word in stop_words.value.split(";"):
+        for word in stop_words.split(";"):
             stop_words_list.append(word)
     
     
@@ -60,6 +63,8 @@ def generate_prompt(prompt, n_token, mode, temperateure, p, k, best_of, presence
     # add the biases and stop words if they have been provided
     create_word_biases(params, forbidden_words, encourage_words) 
     format_stop_word(params, stop_words)
+    print(params)
+    print(prompt)
     
     # call Create
 
@@ -132,5 +137,6 @@ if generate:
         forbidden_words
     )
 
-    st.session_state['prompt_data'] = generated_prompt
-    prompt_input.text_area("Prompt", value=generated_prompt)
+    if generated_prompt != user_input:
+        st.session_state['prompt_data'] = generated_prompt
+        prompt_input.text_area("Prompt", value=generated_prompt)
