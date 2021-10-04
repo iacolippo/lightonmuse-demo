@@ -1,5 +1,9 @@
 import streamlit as st
 import lightonmuse
+import os
+
+
+
 
 @st.cache
 def get_muse_client():
@@ -38,6 +42,9 @@ def format_stop_word(params, stop_words):
     
     
         params["stop_words"] = stop_words_list
+    else:
+        params['stop_words'] = None
+
     
 def generate_prompt(prompt, n_token, mode, temperateure, p, k, best_of, presence_penalty, frequence_penalty, encourage_words, forbidden_words):
 
@@ -63,8 +70,7 @@ def generate_prompt(prompt, n_token, mode, temperateure, p, k, best_of, presence
     # add the biases and stop words if they have been provided
     create_word_biases(params, forbidden_words, encourage_words) 
     format_stop_word(params, stop_words)
-    print(params)
-    print(prompt)
+    
     
     # call Create
 
@@ -95,6 +101,14 @@ presence_penalty = st.sidebar.slider("Presence penalty", min_value=0.0, max_valu
 frequency_penalty = st.sidebar.slider("Frequency penalty", min_value=0.0, max_value=1.0, value=0.8)
 p =  st.sidebar.slider("p", min_value=0.0, max_value=1.0, value=0.9)
 k = st.sidebar.slider("k", min_value=1, max_value=3, value=3)
+
+muse_api_key_data_env = os.getenv('MUSE_API_KEY', "") 
+muse_api_key_data = st.text_input("API KEY", value=muse_api_key_data_env)
+
+if muse_api_key_data:
+    os.environ['MUSE_API_KEY'] = muse_api_key_data
+
+
 
 
 col1, mid, col2 = st.columns([4,1,30])
